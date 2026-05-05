@@ -1,17 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Shield,
   FileCheck,
   ClipboardList,
   Settings,
-  Bell,
+  LogOut,
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   {
@@ -36,8 +37,21 @@ const navItems = [
   },
 ];
 
-export function Nav() {
+interface NavProps {
+  userEmail?: string;
+  userInitial?: string;
+}
+
+export function Nav({ userEmail, userInitial = "?" }: NavProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <nav className="fixed left-0 top-0 h-full w-60 border-r border-[#1E2235] bg-[#090A12] flex flex-col z-40">
@@ -101,17 +115,24 @@ export function Nav() {
           <Settings className="w-4 h-4 flex-shrink-0" />
           Settings
         </Link>
+
+        {/* User row */}
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-6 h-6 rounded-full bg-[#35F2B9]/20 flex items-center justify-center text-xs font-medium text-[#35F2B9]">
-            B
+          <div className="w-6 h-6 rounded-full bg-[#35F2B9]/20 flex items-center justify-center text-xs font-medium text-[#35F2B9] flex-shrink-0 uppercase">
+            {userInitial}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-[#F7F8FF] truncate">
-              Brady Phenicie
+              {userEmail ?? "Account"}
             </p>
-            <p className="text-[11px] text-[#A9B0C8] truncate">Admin</p>
           </div>
-          <Bell className="w-4 h-4 text-[#A9B0C8] flex-shrink-0" />
+          <button
+            onClick={handleSignOut}
+            title="Sign out"
+            className="text-[#A9B0C8] hover:text-[#F25C5C] transition-colors flex-shrink-0"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </nav>
